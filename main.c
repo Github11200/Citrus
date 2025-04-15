@@ -14,10 +14,21 @@
 #define NEWLINE "\n"
 #define TAB "  "
 
-int HEIGHT = 20;
-int WIDTH = 15;
+/*
+  CONVENTIONS
 
-int *playingGrid;
+  The following straight tetromino is 0 degrees:
+    ___
+   |__|
+   |__|
+   |__|
+   |__|
+
+  The follwing T tetromino is 0 degrees:
+       ___
+    __|__|___
+   |__|__|__|
+*/
 
 enum SquareColor
 {
@@ -31,7 +42,7 @@ enum SquareColor
   WHITE_SQUARE = 8
 };
 
-enum Tetromino
+enum TetrominoTypes
 {
   STRAIGHT = 1,
   SQUARE = 2,
@@ -41,6 +52,53 @@ enum Tetromino
   SKEW_RIGHT = 6,
   SKEW_LEFT = 7
 };
+
+typedef struct
+{
+  int tetrominoType;
+  char *color;
+  int x;
+  int y;
+  int angle; // 0, 90, 180, or 270
+} Tetromino;
+
+int HEIGHT = 20;
+int WIDTH = 15;
+int TETROMINOS_LIST_LENGTH = 100000;
+
+int *playingGrid;
+Tetromino *tetrominosList;
+
+char *getColor(int color)
+{
+  switch (color)
+  {
+  case DARK_BLUE_SQAURE:
+    return DARK_BLUE;
+    break;
+  case LIGHT_BLUE_SQUARE:
+    return LIGHT_BLUE;
+    break;
+  case ORANGE_SQAURE:
+    return ORANGE;
+    break;
+  case PURPLE_SQUARE:
+    return PURPLE;
+    break;
+  case YELLOW_SQUARE:
+    return YELLOW;
+    break;
+  case RED_SQUARE:
+    return RED;
+    break;
+  case GREEN_SQUARE:
+    return GREEN;
+    break;
+  default:
+    return YELLOW;
+    break;
+  }
+}
 
 int getPlayingGridIndex(int row, int column)
 {
@@ -52,31 +110,30 @@ void printSquare(char *color)
   printf(color);
 }
 
-void straightTetromino(char *color)
+void straightTetromino(Tetromino tetromino)
 {
-  for (int i = 0; i < 4; ++i)
-    printSquare(color);
-  printf(NEWLINE);
+  int TETROMINO_LENGTH = 4;
+  if (tetromino.angle == 0 || tetromino.angle == 180)
+    for (int i = tetromino.y; i < tetromino.y + TETROMINO_LENGTH; ++i)
+      playingGrid[getPlayingGridIndex(tetromino.x, i)] = tetromino.color;
+  else
+    for (int i = tetromino.x; i < tetromino.x + TETROMINO_LENGTH; ++i)
+      playingGrid[getPlayingGridIndex(i, tetromino.y)] = tetromino.color;
 }
 
-void squareTetromino(char *color)
+void squareTetromino(Tetromino tetromino)
 {
-  printSquare(color);
-  printSquare(color);
-  printf(NEWLINE);
-  printSquare(color);
-  printSquare(color);
-  printf(NEWLINE);
+  playingGrid[getPlayingGridIndex(tetromino.x, tetromino.y)] = tetromino.color;
+  playingGrid[getPlayingGridIndex(tetromino.x, tetromino.y + 1)] = tetromino.color;
+  playingGrid[getPlayingGridIndex(tetromino.x + 1, tetromino.y)] = tetromino.color;
+  playingGrid[getPlayingGridIndex(tetromino.x + 1, tetromino.y + 1)] = tetromino.color;
 }
 
-void tTetromino(char *color)
+void tTetromino(Tetromino tetromino)
 {
-  for (int i = 0; i < 3; ++i)
-    printSquare(color);
-  printf(NEWLINE);
-  printf(TAB);
-  printSquare(color);
-  printf(NEWLINE);
+  if (tetromino.angle == 0)
+  {
+  }
 }
 
 void lTetromino(char *color)
@@ -111,34 +168,13 @@ void displayMatrix()
   }
 }
 
-char *getColor(int color)
+void updatePlayingGrid()
 {
-  switch (color)
+  for (int i = 0; i < TETROMINOS_LIST_LENGTH; ++i)
   {
-  case DARK_BLUE_SQAURE:
-    return DARK_BLUE;
-    break;
-  case LIGHT_BLUE_SQUARE:
-    return LIGHT_BLUE;
-    break;
-  case ORANGE_SQAURE:
-    return ORANGE;
-    break;
-  case PURPLE_SQUARE:
-    return PURPLE;
-    break;
-  case YELLOW_SQUARE:
-    return YELLOW;
-    break;
-  case RED_SQUARE:
-    return RED;
-    break;
-  case GREEN_SQUARE:
-    return GREEN;
-    break;
-  default:
-    return WHITE;
-    break;
+    if (tetrominosList[i].tetrominoType != 0)
+    {
+    }
   }
 }
 
@@ -146,36 +182,47 @@ void drawMatrix()
 {
   for (int i = 0; i < HEIGHT; ++i)
   {
+    printf("\033[38;5;15m| \033[0m");
     for (int j = 0; j < WIDTH; ++j)
       printSquare(getColor(playingGrid[getPlayingGridIndex(j, i)]));
+    printf("\033[38;5;15m |\033[0m");
     printf(NEWLINE);
   }
+  printf(TAB);
+  for (int i = 0; i < WIDTH * 2; ++i)
+    printf("\033[38;5;15m=\033[0m");
+  printf(NEWLINE);
 }
 
-void addTetromino(int (*playingGrid)[], int index, int tetrominoNumber)
+int findFirstEmptyIndexInTetrominosList()
 {
+  for (int i = 0; i < TETROMINOS_LIST_LENGTH; ++i)
+    if (tetrominosList[i].tetrominoType == 0)
+      return i;
+}
+
+void addTetrominoToTetrominosList(Tetromino tetromino)
+{
+  int firstEmptyIndex = findFirstEmptyIndexInTetrominosList();
+  tetrominosList[firstEmptyIndex] = tetromino;
 }
 
 int main()
 {
   playingGrid = malloc(sizeof(int[WIDTH][HEIGHT]));
+  tetrominosList = (Tetromino *)malloc(sizeof(Tetromino) * TETROMINOS_LIST_LENGTH);
 
-  playingGrid[0] = RED_SQUARE;
-  playingGrid[1] = DARK_BLUE_SQAURE;
+  Tetromino tetromino;
+  tetromino.x = 0;
+  tetromino.y = 0;
+  tetromino.angle = 0;
+  tetromino.tetrominoType = squareTetromino;
+  tetromino.color = LIGHT_BLUE_SQUARE;
+  squareTetromino(tetromino);
 
   drawMatrix(playingGrid);
 
-  straightTetromino(&LIGHT_BLUE);
-  printf(NEWLINE);
-  squareTetromino(&YELLOW);
-  printf(NEWLINE);
-  tTetromino(&PURPLE);
-  printf(NEWLINE);
-  lTetromino(&ORANGE);
-  printf(NEWLINE);
-  skewTetromino(&GREEN);
-  printf(NEWLINE);
-
   free(playingGrid);
+  free(tetrominosList);
   return 0;
 }
