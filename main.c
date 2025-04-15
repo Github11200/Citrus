@@ -9,12 +9,15 @@
 #define YELLOW "\033[38;5;226;48;5;226m▀▀\033[0m"
 #define RED "\033[38;5;9;48;5;9m▀▀\033[0m"
 #define GREEN "\033[38;5;82;48;5;82m▀▀\033[0m"
+#define WHITE "\033[38;5;15;48;5;15m▀▀\033[0m"
 
 #define NEWLINE "\n"
 #define TAB "  "
 
-int HEIGHT = 10;
-int WIDTH = 5;
+int HEIGHT = 20;
+int WIDTH = 15;
+
+int *playingGrid;
 
 enum SquareColor
 {
@@ -24,8 +27,25 @@ enum SquareColor
   PURPLE_SQUARE = 4,
   YELLOW_SQUARE = 5,
   RED_SQUARE = 6,
-  GREEN_SQUARE = 7
+  GREEN_SQUARE = 7,
+  WHITE_SQUARE = 8
 };
+
+enum Tetromino
+{
+  STRAIGHT = 1,
+  SQUARE = 2,
+  T = 3,
+  L_RIGHT = 4,
+  L_LEFT = 5,
+  SKEW_RIGHT = 6,
+  SKEW_LEFT = 7
+};
+
+int getPlayingGridIndex(int row, int column)
+{
+  return column * WIDTH + row;
+}
 
 void printSquare(char *color)
 {
@@ -81,28 +101,69 @@ void skewTetromino(char *color)
   printf(NEWLINE);
 }
 
-void displayMatrix(int (*playingGrid)[])
+void displayMatrix()
 {
-  int total = 0;
   for (int i = 0; i < HEIGHT; ++i)
   {
     for (int j = 0; j < WIDTH; ++j)
-    {
-      printf("%d ", (*playingGrid)[total]);
-      ++total;
-    }
+      printf("%d ", playingGrid[getPlayingGridIndex(j, i)]);
     printf(NEWLINE);
   }
 }
 
+char *getColor(int color)
+{
+  switch (color)
+  {
+  case DARK_BLUE_SQAURE:
+    return DARK_BLUE;
+    break;
+  case LIGHT_BLUE_SQUARE:
+    return LIGHT_BLUE;
+    break;
+  case ORANGE_SQAURE:
+    return ORANGE;
+    break;
+  case PURPLE_SQUARE:
+    return PURPLE;
+    break;
+  case YELLOW_SQUARE:
+    return YELLOW;
+    break;
+  case RED_SQUARE:
+    return RED;
+    break;
+  case GREEN_SQUARE:
+    return GREEN;
+    break;
+  default:
+    return WHITE;
+    break;
+  }
+}
+
+void drawMatrix()
+{
+  for (int i = 0; i < HEIGHT; ++i)
+  {
+    for (int j = 0; j < WIDTH; ++j)
+      printSquare(getColor(playingGrid[getPlayingGridIndex(j, i)]));
+    printf(NEWLINE);
+  }
+}
+
+void addTetromino(int (*playingGrid)[], int index, int tetrominoNumber)
+{
+}
+
 int main()
 {
-  int (*playingGrid)[HEIGHT] = malloc(sizeof(int[HEIGHT][WIDTH]));
+  playingGrid = malloc(sizeof(int[WIDTH][HEIGHT]));
 
-  playingGrid[0][0] = 10;
-  playingGrid[1][0] = 20;
+  playingGrid[0] = RED_SQUARE;
+  playingGrid[1] = DARK_BLUE_SQAURE;
 
-  displayMatrix(playingGrid);
+  drawMatrix(playingGrid);
 
   straightTetromino(&LIGHT_BLUE);
   printf(NEWLINE);
