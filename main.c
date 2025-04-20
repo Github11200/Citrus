@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <termios.h>
 #include <pthread.h>
+#include <malloc.h>
 
 #define DARK_BLUE "\033[38;5;19;48;5;19m▀▀\033[0m"
 #define LIGHT_BLUE "\033[38;5;14;48;5;14m▀▀\033[0m"
@@ -184,181 +185,257 @@ int getPlayingGridIndex(int row, int column)
   return column * WIDTH + row;
 }
 
+int getRowFromPlayingGridIndex(int playingGridIndex, int column)
+{
+  return playingGridIndex - (column * WIDTH);
+}
+
+int getColumnFromPlayingGridIndex(int playingGridIndex, int row)
+{
+  return (playingGridIndex - row) / WIDTH;
+}
+
+int max(int a, int b)
+{
+  if (a > b)
+    return a;
+  return b;
+}
+
 void printSquare(char *color)
 {
   printf(color);
 }
 
-void straightTetromino(Tetromino tetromino)
+int *getStraightTetrominoCoordinates(Tetromino tetromino)
 {
-  int TETROMINO_LENGTH = 4;
+  int *coordinates = (int *)malloc(4 * sizeof(int));
   if (tetromino.angle == 0 || tetromino.angle == 180)
-    for (int i = tetromino.y; i < tetromino.y + TETROMINO_LENGTH; ++i)
-      playingGrid[getPlayingGridIndex(tetromino.x, i)] = tetromino.color;
+    for (int i = tetromino.y; i < tetromino.y + 4; ++i)
+      coordinates[i - tetromino.y] = getPlayingGridIndex(tetromino.x, i);
   else
-    for (int i = tetromino.x; i < tetromino.x + TETROMINO_LENGTH; ++i)
-      playingGrid[getPlayingGridIndex(i, tetromino.y)] = tetromino.color;
+    for (int i = tetromino.x; i < tetromino.x + 4; ++i)
+      coordinates[i - tetromino.x] = getPlayingGridIndex(i, tetromino.y);
+  return coordinates;
 }
 
-void squareTetromino(Tetromino tetromino)
+int *getSquareTetrominoCoordintes(Tetromino tetromino)
 {
-  playingGrid[getPlayingGridIndex(tetromino.x, tetromino.y)] = tetromino.color;
-  playingGrid[getPlayingGridIndex(tetromino.x, tetromino.y + 1)] = tetromino.color;
-  playingGrid[getPlayingGridIndex(tetromino.x + 1, tetromino.y)] = tetromino.color;
-  playingGrid[getPlayingGridIndex(tetromino.x + 1, tetromino.y + 1)] = tetromino.color;
+  int *coordinates = (int *)malloc(4 * sizeof(int));
+  coordinates[0] = getPlayingGridIndex(tetromino.x, tetromino.y);
+  coordinates[1] = getPlayingGridIndex(tetromino.x, tetromino.y + 1);
+  coordinates[2] = getPlayingGridIndex(tetromino.x + 1, tetromino.y);
+  coordinates[3] = getPlayingGridIndex(tetromino.x + 1, tetromino.y + 1);
+  return coordinates;
 }
 
-void tTetromino(Tetromino tetromino)
+int *getTTetrominoCoordinates(Tetromino tetromino)
 {
-  int TETROMINO_LENGTH = 3;
-  if (tetromino.angle == 0)
-  {
-    playingGrid[getPlayingGridIndex(tetromino.x + 1, tetromino.y)] = tetromino.color;
-    for (int i = tetromino.x; i < tetromino.x + TETROMINO_LENGTH; ++i)
-      playingGrid[getPlayingGridIndex(i, tetromino.y + 1)] = tetromino.color;
-  }
-  else if (tetromino.angle == 180)
-  {
-    for (int i = tetromino.x; i < tetromino.x + TETROMINO_LENGTH; ++i)
-      playingGrid[getPlayingGridIndex(i, tetromino.y)] = tetromino.color;
-    playingGrid[getPlayingGridIndex(tetromino.x + 1, tetromino.y + 1)] = tetromino.color;
-  }
-  else if (tetromino.angle == 90)
-  {
-    for (int i = tetromino.x; i < tetromino.x + TETROMINO_LENGTH; ++i)
-      playingGrid[getPlayingGridIndex(tetromino.x, i)] = tetromino.color;
-    playingGrid[getPlayingGridIndex(tetromino.x + 1, tetromino.y + 1)] = tetromino.color;
-  }
-  else if (tetromino.angle == 270)
-  {
-    playingGrid[getPlayingGridIndex(tetromino.x, tetromino.y + 1)] = tetromino.color;
-    for (int i = tetromino.x; i < tetromino.x + TETROMINO_LENGTH; ++i)
-      playingGrid[getPlayingGridIndex(tetromino.x + 1, i)] = tetromino.color;
-  }
-}
-
-void lTetrominoRight(Tetromino tetromino)
-{
-  int TETROMINO_LENGTH = 3;
-  if (tetromino.angle == 0)
-  {
-    for (int i = tetromino.y; i < tetromino.y + TETROMINO_LENGTH; ++i)
-      playingGrid[getPlayingGridIndex(tetromino.x, i)] = tetromino.color;
-    playingGrid[getPlayingGridIndex(tetromino.x + 1, tetromino.y + TETROMINO_LENGTH - 1)] = tetromino.color;
-  }
-  else if (tetromino.angle == 180)
-  {
-    playingGrid[getPlayingGridIndex(tetromino.x, tetromino.y)] = tetromino.color;
-    for (int i = tetromino.y; i < tetromino.y + TETROMINO_LENGTH; ++i)
-      playingGrid[getPlayingGridIndex(tetromino.x + 1, i)] = tetromino.color;
-  }
-  else if (tetromino.angle == 90)
-  {
-    for (int i = tetromino.x; i < tetromino.x + TETROMINO_LENGTH; ++i)
-      playingGrid[getPlayingGridIndex(i, tetromino.y)] = tetromino.color;
-    playingGrid[getPlayingGridIndex(tetromino.x, tetromino.y + 1)] = tetromino.color;
-  }
-  else if (tetromino.angle == 270)
-  {
-    playingGrid[getPlayingGridIndex(tetromino.x + TETROMINO_LENGTH - 1, tetromino.y)] = tetromino.color;
-    for (int i = tetromino.x; i < tetromino.x + TETROMINO_LENGTH; ++i)
-      playingGrid[getPlayingGridIndex(i, tetromino.y + 1)] = tetromino.color;
-  }
-}
-
-void lTetrominoLeft(Tetromino tetromino)
-{
-  int TETROMINO_LENGTH = 3;
-  if (tetromino.angle == 0)
-  {
-    playingGrid[getPlayingGridIndex(tetromino.x, tetromino.y + TETROMINO_LENGTH - 1)] = tetromino.color;
-    for (int i = tetromino.y; i < tetromino.y + TETROMINO_LENGTH; ++i)
-      playingGrid[getPlayingGridIndex(tetromino.x + 1, i)] = tetromino.color;
-  }
-  else if (tetromino.angle == 180)
-  {
-    for (int i = tetromino.y; i < tetromino.y + TETROMINO_LENGTH; ++i)
-      playingGrid[getPlayingGridIndex(tetromino.x, i)] = tetromino.color;
-    playingGrid[getPlayingGridIndex(tetromino.x + 1, tetromino.y)] = tetromino.color;
-  }
-  else if (tetromino.angle == 90)
-  {
-    playingGrid[getPlayingGridIndex(tetromino.x, tetromino.y)] = tetromino.color;
-    for (int i = tetromino.x; i < tetromino.x + TETROMINO_LENGTH; ++i)
-      playingGrid[getPlayingGridIndex(i, tetromino.y + 1)] = tetromino.color;
-  }
-  else if (tetromino.angle == 270)
-  {
-    for (int i = tetromino.x; i < tetromino.x + TETROMINO_LENGTH; ++i)
-      playingGrid[getPlayingGridIndex(i, tetromino.y)] = tetromino.color;
-    playingGrid[getPlayingGridIndex(tetromino.x + TETROMINO_LENGTH - 1, tetromino.y + 1)] = tetromino.color;
-  }
-}
-
-void skewTetrominoRight(Tetromino tetromino)
-{
+  int *coordinates = (int *)malloc(4 * sizeof(int));
   if (tetromino.angle == 0 || tetromino.angle == 180)
   {
-    playingGrid[getPlayingGridIndex(tetromino.x + 1, tetromino.y)] = tetromino.color;
-    playingGrid[getPlayingGridIndex(tetromino.x + 2, tetromino.y)] = tetromino.color;
-    playingGrid[getPlayingGridIndex(tetromino.x, tetromino.y + 1)] = tetromino.color;
-    playingGrid[getPlayingGridIndex(tetromino.x + 1, tetromino.y + 1)] = tetromino.color;
+    coordinates[0] = tetromino.angle == 0 ? getPlayingGridIndex(tetromino.x + 1, tetromino.y) : getPlayingGridIndex(tetromino.x + 1, tetromino.y + 1);
+    for (int i = tetromino.x; i < tetromino.x + 3; ++i)
+    {
+      int index = tetromino.angle == 0 ? getPlayingGridIndex(i, tetromino.y + 1) : getPlayingGridIndex(i, tetromino.y);
+      coordinates[i - tetromino.x + 1] = index;
+    }
+  }
+  else
+  {
+    int xIndex = tetromino.angle == 90 ? tetromino.x + 1 : tetromino.x;
+    coordinates[0] = getPlayingGridIndex(xIndex, tetromino.y + 1);
+    for (int i = tetromino.y; i < tetromino.y + 3; ++i)
+    {
+      xIndex = tetromino.angle == 90 ? tetromino.x : tetromino.x + 1;
+      coordinates[i - tetromino.y + 1] = getPlayingGridIndex(xIndex, i);
+    }
+  }
+
+  return coordinates;
+}
+
+int *getLRightTetrominoCoordinates(Tetromino tetromino)
+{
+  int *coordinates = (int *)malloc(4 * sizeof(int));
+  if (tetromino.angle == 0)
+  {
+    coordinates[0] = getPlayingGridIndex(tetromino.x + 1, tetromino.y + 2);
+    for (int i = tetromino.y; i < tetromino.y + 3; ++i)
+      coordinates[i - tetromino.y + 1] = getPlayingGridIndex(tetromino.x, i);
+  }
+  else if (tetromino.angle == 180)
+  {
+    coordinates[0] = getPlayingGridIndex(tetromino.x, tetromino.y);
+    for (int i = tetromino.y; i < tetromino.y + 3; ++i)
+      coordinates[i - tetromino.y + 1] = getPlayingGridIndex(tetromino.x + 1, i);
+  }
+  else if (tetromino.angle == 90)
+  {
+    coordinates[0] = getPlayingGridIndex(tetromino.x, tetromino.y + 1);
+    for (int i = tetromino.x; i < tetromino.x + 3; ++i)
+      coordinates[i - tetromino.x + 1] = getPlayingGridIndex(i, tetromino.y);
+  }
+  else
+  {
+    coordinates[0] = getPlayingGridIndex(tetromino.x + 2, tetromino.y);
+    for (int i = tetromino.x; i < tetromino.x + 3; ++i)
+      coordinates[i - tetromino.x + 1] = getPlayingGridIndex(i, tetromino.y + 1);
+  }
+
+  return coordinates;
+}
+
+int *getLLeftTetrominoCoordinates(Tetromino tetromino)
+{
+  int *coordinates = (int *)malloc(4 * sizeof(int));
+  if (tetromino.angle == 0)
+  {
+    coordinates[0] = getPlayingGridIndex(tetromino.x, tetromino.y + 2);
+    for (int i = tetromino.y; i < tetromino.y + 3; ++i)
+      coordinates[i - tetromino.y + 1] = getPlayingGridIndex(tetromino.x + 1, i);
+  }
+  else if (tetromino.angle == 180)
+  {
+    coordinates[0] = getPlayingGridIndex(tetromino.x + 1, tetromino.y);
+    for (int i = tetromino.y; i < tetromino.y + 3; ++i)
+      coordinates[i - tetromino.y + 1] = getPlayingGridIndex(tetromino.x, i);
+  }
+  else if (tetromino.angle == 90)
+  {
+    coordinates[0] = getPlayingGridIndex(tetromino.x, tetromino.y);
+    for (int i = tetromino.x; i < tetromino.x + 3; ++i)
+      coordinates[i - tetromino.x + 1] = getPlayingGridIndex(i, tetromino.y + 1);
+  }
+  else
+  {
+    coordinates[0] = getPlayingGridIndex(tetromino.x + 2, tetromino.y + 1);
+    for (int i = tetromino.x; i < tetromino.x + 3; ++i)
+      coordinates[i - tetromino.x + 1] = getPlayingGridIndex(i, tetromino.y);
+  }
+  return coordinates;
+}
+
+int *getSkewRightTetrominoCoordinates(Tetromino tetromino)
+{
+  int *coordinates = (int *)malloc(4 * sizeof(int));
+  if (tetromino.angle == 0 || tetromino.angle == 180)
+  {
+    coordinates[0] = getPlayingGridIndex(tetromino.x + 1, tetromino.y);
+    coordinates[1] = getPlayingGridIndex(tetromino.x + 2, tetromino.y);
+    coordinates[2] = getPlayingGridIndex(tetromino.x, tetromino.y + 1);
+    coordinates[3] = getPlayingGridIndex(tetromino.x + 1, tetromino.y + 1);
   }
   else if (tetromino.angle == 90 || tetromino.angle == 270)
   {
-    playingGrid[getPlayingGridIndex(tetromino.x, tetromino.y)] = tetromino.color;
-    playingGrid[getPlayingGridIndex(tetromino.x, tetromino.y + 1)] = tetromino.color;
-    playingGrid[getPlayingGridIndex(tetromino.x + 1, tetromino.y + 1)] = tetromino.color;
-    playingGrid[getPlayingGridIndex(tetromino.x + 1, tetromino.y + 2)] = tetromino.color;
+    coordinates[0] = getPlayingGridIndex(tetromino.x, tetromino.y);
+    coordinates[1] = getPlayingGridIndex(tetromino.x, tetromino.y + 1);
+    coordinates[2] = getPlayingGridIndex(tetromino.x + 1, tetromino.y + 1);
+    coordinates[3] = getPlayingGridIndex(tetromino.x + 1, tetromino.y + 2);
   }
+  return coordinates;
 }
 
-void skewTetrominoLeft(Tetromino tetromino)
+int *getSkewLeftTetrominoCoordinates(Tetromino tetromino)
 {
+  int *coordinates = (int *)malloc(4 * sizeof(int));
   if (tetromino.angle == 0 || tetromino.angle == 180)
   {
-    playingGrid[getPlayingGridIndex(tetromino.x, tetromino.y)] = tetromino.color;
-    playingGrid[getPlayingGridIndex(tetromino.x + 1, tetromino.y)] = tetromino.color;
-    playingGrid[getPlayingGridIndex(tetromino.x + 1, tetromino.y + 1)] = tetromino.color;
-    playingGrid[getPlayingGridIndex(tetromino.x + 2, tetromino.y + 1)] = tetromino.color;
+    coordinates[0] = getPlayingGridIndex(tetromino.x, tetromino.y);
+    coordinates[1] = getPlayingGridIndex(tetromino.x + 1, tetromino.y);
+    coordinates[2] = getPlayingGridIndex(tetromino.x + 1, tetromino.y + 1);
+    coordinates[3] = getPlayingGridIndex(tetromino.x + 2, tetromino.y + 1);
   }
   else if (tetromino.angle == 90 || tetromino.angle == 270)
   {
-    playingGrid[getPlayingGridIndex(tetromino.x + 1, tetromino.y)] = tetromino.color;
-    playingGrid[getPlayingGridIndex(tetromino.x, tetromino.y + 1)] = tetromino.color;
-    playingGrid[getPlayingGridIndex(tetromino.x + 1, tetromino.y + 1)] = tetromino.color;
-    playingGrid[getPlayingGridIndex(tetromino.x, tetromino.y + 2)] = tetromino.color;
+    coordinates[0] = getPlayingGridIndex(tetromino.x + 1, tetromino.y);
+    coordinates[1] = getPlayingGridIndex(tetromino.x, tetromino.y + 1);
+    coordinates[2] = getPlayingGridIndex(tetromino.x + 1, tetromino.y + 1);
+    coordinates[3] = getPlayingGridIndex(tetromino.x, tetromino.y + 2);
   }
+  return coordinates;
 }
 
-void drawTetromino(Tetromino tetromino)
+int *getTetrominoCoordinates(Tetromino tetromino)
 {
   switch (tetromino.tetrominoType)
   {
   case STRAIGHT:
-    straightTetromino(tetromino);
+    return getStraightTetrominoCoordinates(tetromino);
     break;
   case SQUARE:
-    squareTetromino(tetromino);
-    break;
+    return getSquareTetrominoCoordintes(tetromino);
   case T:
-    tTetromino(tetromino);
-    break;
+    return getTTetrominoCoordinates(tetromino);
   case L_RIGHT:
-    lTetrominoRight(tetromino);
-    break;
+    return getLRightTetrominoCoordinates(tetromino);
   case L_LEFT:
-    lTetrominoLeft(tetromino);
-    break;
+    return getLLeftTetrominoCoordinates(tetromino);
   case SKEW_RIGHT:
-    skewTetrominoRight(tetromino);
-    break;
+    return getSkewRightTetrominoCoordinates(tetromino);
   case SKEW_LEFT:
-    skewTetrominoLeft(tetromino);
-    break;
+    return getSkewLeftTetrominoCoordinates(tetromino);
   default:
     break;
   }
+}
+
+int maxLength(Tetromino tetromino)
+{
+  if (tetromino.tetrominoType == STRAIGHT)
+    return tetromino.angle == 0 || tetromino.angle == 180 ? 0 : 3;
+  else if (tetromino.tetrominoType == SQUARE)
+    return 1;
+  else if (tetromino.tetrominoType == T)
+    return tetromino.angle == 0 || tetromino.angle == 180 ? 2 : 1;
+  else if (tetromino.tetrominoType == L_LEFT || tetromino.tetrominoType == L_RIGHT)
+    return tetromino.angle == 0 || tetromino.angle == 180 ? 1 : 2;
+  else if (tetromino.tetrominoType == SKEW_LEFT || tetromino.tetrominoType == SKEW_RIGHT)
+    return tetromino.angle == 0 || tetromino.angle == 180 ? 2 : 1;
+}
+
+bool isTetrominoOutOfBounds(Tetromino currentTetromino, int newX, int newY, int newAngle)
+{
+  int *currentTetrominoCoordinates = getTetrominoCoordinates(currentTetromino);
+  for (int i = 0; i < 4; ++i)
+    playingGrid[currentTetrominoCoordinates[i]] = WHITE_SQUARE;
+
+  Tetromino newTetromino;
+  newTetromino.angle = newAngle;
+  newTetromino.x = newX;
+  newTetromino.y = newY;
+  newTetromino.color = currentTetromino.color;
+  newTetromino.tetrominoType = currentTetromino.tetrominoType;
+
+  int *newTetrominoCoordinates = getTetrominoCoordinates(newTetromino);
+
+  if (newX < 0 || newY >= HEIGHT)
+    return true;
+  // Use the max length of the tetromino at it's current angle and check if it is out of bounds
+  else if (newX + maxLength(newTetromino) >= WIDTH)
+    return true;
+
+  bool isOutOfBounds = false;
+  for (int i = 0; i < 4; ++i)
+  {
+    // Check if the current square is occupied by another tetromino
+    if (playingGrid[newTetrominoCoordinates[i]] != WHITE_SQUARE)
+    {
+      isOutOfBounds = true;
+      break;
+    }
+  }
+
+  for (int i = 0; i < 4; ++i)
+    playingGrid[currentTetrominoCoordinates[i]] = currentTetromino.color;
+  return isOutOfBounds;
+}
+
+void drawTetromino(Tetromino tetromino)
+{
+  int *coordinates = getTetrominoCoordinates(tetromino);
+  for (int i = 0; i < 4; ++i)
+    playingGrid[coordinates[i]] = tetromino.color;
 }
 
 void displayPlayingGrid()
@@ -375,10 +452,10 @@ void clearPlayingGrid()
 {
   for (int i = 0; i < HEIGHT; ++i)
     for (int j = 0; j < WIDTH; ++j)
-      playingGrid[getPlayingGridIndex(j, i)] = WHITE;
+      playingGrid[getPlayingGridIndex(j, i)] = WHITE_SQUARE;
 }
 
-void drawMatrix()
+void drawPlayingGrid()
 {
   gotoxy(0, 0);
   for (int i = 0; i < HEIGHT; ++i)
@@ -421,7 +498,7 @@ Tetromino getRandomTetromino()
 
   Tetromino randomTetromino;
   randomTetromino.x = randomX;
-  randomTetromino.y = 0;
+  randomTetromino.y = 1;
   randomTetromino.angle = 0;
 
   switch (randomTetrominoNumber)
@@ -463,7 +540,7 @@ Tetromino getRandomTetromino()
   return randomTetromino;
 }
 
-void addTetrominosFromListToMatrix()
+void addTetrominosFromListToPlayingGrid()
 {
   for (int i = 0; i < TETROMINOS_LIST_LENGTH; ++i)
   {
@@ -476,8 +553,8 @@ void addTetrominosFromListToMatrix()
 void update()
 {
   clearPlayingGrid();
-  addTetrominosFromListToMatrix();
-  drawMatrix();
+  addTetrominosFromListToPlayingGrid();
+  drawPlayingGrid();
 }
 
 char getch()
@@ -510,16 +587,21 @@ void *inputThreadCallback(void *arg)
     switch (key)
     {
     case 'U':
-      printf("UP ARROW\n");
+      tetrominosList[currentTetrominoIndex].angle += 90;
+      if (tetrominosList[currentTetrominoIndex].angle == 360)
+        tetrominosList[currentTetrominoIndex].angle = 0;
       break;
     case 'D':
-      ++tetrominosList[currentTetrominoIndex].y;
+      if (!isTetrominoOutOfBounds(tetrominosList[currentTetrominoIndex], tetrominosList[currentTetrominoIndex].x, tetrominosList[currentTetrominoIndex].y + 1, tetrominosList[currentTetrominoIndex].angle))
+        ++tetrominosList[currentTetrominoIndex].y;
       break;
     case 'L':
-      --tetrominosList[currentTetrominoIndex].x;
+      if (!isTetrominoOutOfBounds(tetrominosList[currentTetrominoIndex], tetrominosList[currentTetrominoIndex].x - 1, tetrominosList[currentTetrominoIndex].y, tetrominosList[currentTetrominoIndex].angle))
+        --tetrominosList[currentTetrominoIndex].x;
       break;
     case 'R':
-      ++tetrominosList[currentTetrominoIndex].x;
+      if (!isTetrominoOutOfBounds(tetrominosList[currentTetrominoIndex], tetrominosList[currentTetrominoIndex].x + 1, tetrominosList[currentTetrominoIndex].y, tetrominosList[currentTetrominoIndex].angle))
+        ++tetrominosList[currentTetrominoIndex].x;
       break;
     }
     usleep(INPUT_THREAD_SLEEP_TIME);
@@ -547,14 +629,18 @@ int main()
   pthread_create(&inputThread, NULL, inputThreadCallback, NULL);
 
   Tetromino currentTetromino = getRandomTetromino();
+  currentTetromino.x = 7;
   currentTetrominoIndex = addTetrominoToTetrominosList(currentTetromino);
   system("clear");
   while (true)
   {
     update();
-    ++tetrominosList[currentTetrominoIndex].y;
+    if (!isTetrominoOutOfBounds(tetrominosList[currentTetrominoIndex], tetrominosList[currentTetrominoIndex].x, tetrominosList[currentTetrominoIndex].y + 1, tetrominosList[currentTetrominoIndex].angle))
+      ++tetrominosList[currentTetrominoIndex].y;
     usleep(MAIN_THREAD_SLEEP_TIME);
   }
+
+  update();
 
   free(playingGrid);
   free(tetrominosList);
