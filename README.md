@@ -1,7 +1,7 @@
 # Citrus 🍋
 A Tetris game written in C (Cetris -> Citrus) using just the standard library. It's meant to run in your terminal and uses ASCII and ANSI characters to display the blocks.
 
-![image](https://github.com/user-attachments/assets/69ec0dee-6d4a-42d7-bbf9-748f9ed94392)
+![image](https://github.com/user-attachments/assets/3d3b9a9d-5344-4322-b56d-1056e31c98a9)
 
 ## How to run
 1. Make sure you're running on either Linux or are using Windows Subsystem for Linux (WSL) because anything other than Linux is bad.
