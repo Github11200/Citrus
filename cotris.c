@@ -22,8 +22,8 @@
 
 #define gotoxy(x, y) printf("\033[%d;%dH", (y), (x))
 
-int HEIGHT = 40;
-int WIDTH = 20;
+int HEIGHT = 20;
+int WIDTH = 15;
 int TETROMINOS_LIST_LENGTH = 100000;
 int MAIN_THREAD_SLEEP_TIME = 300000;
 int INPUT_THREAD_SLEEP_TIME = 300000;
