@@ -16,17 +16,13 @@ There isn't much you can change. If you really want to though, you can open the 
 Why did I make this?
 1. I wanted to actually make something in C because I've only really done web development and the only time I've had to use C/C++ is in robotics and DSA.
 2. I saw a coding montage in the movie Tetris (awesome movie) and I was like, "hmm, it can't be that hard." It really isn't hard either, it just takes me a bit of time to think :).
-3. It's for my Computer Programming 11 course because I had nothing else to do.
+3. It's for my Computer Programming 11 course.
 
 Why didn't I use any libraries?
-1. I'm too lazy to actually install them.
+1. Libraries in C are weird.
 2. Web development is all about putting together like 50 different libraries, I wanted to have a go at coding something without that.
-3. I felt like it.
+3. Why not?
 
 Why did I choose C?
 
 I've always been using objects because every single other language I've programmed in has objects. Then I was like, "hmm, what if OOP is just dumb?" To test this hypothesis, and force myself to not use objects, I wrote it in C.
-
-Why is everything in one file?
-
-I thought about splitting stuff into seperate files, then I was like, "if I put everything into one file, it can't be that bad right?" Then I just ended up using one file. Plus it's such a small project there's no point in splitting the files unless you want your code "organized."
