@@ -12,9 +12,6 @@ A Tetris game written in C (Cetris -> Citrus) using just the standard library. I
 ## Customizability 🛠️
 There isn't much you can change. If you really want to though, you can open the `citrus.c` file and change the `HEIGHT` and/or `WIDTH` varibles of the game. You can also change the `MAIN_THREAD_SLEEP_TIME` and `INPUT_THREAD_SLEEP_TIME` variables to change how quickly it refreshes. Try not to crash it!
 
-## Contributing 👥
-If you really feel like contributing to this project then there isn't much I can say other than a) don't install a virus 🙏 and b) good luck trying to understand the code.
-
 ## Other random stuff
 Why did I make this?
 1. I wanted to actually make something in C because I've only really done web development and the only time I've had to use C/C++ is in robotics and DSA.
